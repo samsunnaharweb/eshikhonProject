@@ -1,4 +1,15 @@
-<?php include("header.php"); ?>
+<?php 
+include("header.php");
+include("db.php");
+
+$tableCategory = "category";
+
+$sql = "SELECT * FROM {$tableCategory}";
+
+$result = $conn->query($sql);
+
+
+?>
 
 <div class="content-wrap">
         <div class="main">
@@ -31,42 +42,38 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div class="form-validation">
-                                        <form class="form-valide" action="create-post-store.php" method="POST" enctype="multipart/form-data">
+                                        <form class="form-valide" action="post-store.php" method="POST" enctype="multipart/form-data">
                                             <div class="form-group row">
-                                                <label class="col-lg-4 col-form-label" for="val-username">Post Title <span class="text-danger">*</span></label>
+                                                <label class="col-lg-4 col-form-label" for="post-title">Post Title <span class="text-danger">*</span></label>
                                                 <div class="col-lg-8">
-                                                    <input type="text" class="form-control" id="val-username" name="post-title" placeholder="Enter a title..">
+                                                    <input type="text" class="form-control" id="post-title" name="post-title" placeholder="Enter a title..">
                                                 </div>
                                             </div>
                                             <div class="form-group row">
-                                                <label class="col-lg-4 col-form-label" for="val-username">Post Description <span class="text-danger">*</span></label>
+                                                <label class="col-lg-4 col-form-label" for="post-content">Post Description <span class="text-danger">*</span></label>
                                                 <div class="col-lg-8">
-                                                    <textarea name="post-content" id="" cols="30" rows="10"></textarea>
+                                                    <textarea name="post-content" id="post-content" cols="30" rows="10"></textarea>
                                                 </div>
                                             </div>
                                             <div class="form-group row">
-                                                <label class="col-lg-4 col-form-label" for="val-select2">Category <span class="text-danger">*</span></label>
+                                                <label class="col-lg-4 col-form-label" for="post-category">Category <span class="text-danger">*</span></label>
                                                 <div class="col-lg-8">
-                                                    <select class="js-select2 form-control" id="val-select2" name="category" style="width: 100%;" data-placeholder="Choose one..">
+                                                    <select class="js-select2 form-control" id="post-category" name="post-category" style="width: 100%;">
                                                         <option></option>
-                                                        <option value="html">HTML</option>
-                                                        <option value="css">CSS</option>
-                                                        <option value="javascript">JavaScript</option>
-                                                        <option value="angular">Angular</option>
-                                                        <option value="angular">React</option>
-                                                        <option value="vuejs">Vue.js</option>
-                                                        <option value="ruby">Ruby</option>
-                                                        <option value="php">PHP</option>
-                                                        <option value="asp">ASP.NET</option>
-                                                        <option value="python">Python</option>
-                                                        <option value="mysql">MySQL</option>
+
+                                                        <?php while ($category = $result->fetch_assoc()) {
+                                                            ?>
+                                                            <option value="<?php echo $category['slug']; ?>"><?php echo $category['name']; ?></option>
+                                                            <?php 
+                                                        } ?>
+
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="form-group row">
-                                                <label class="col-lg-4 col-form-label" for="val-select2">Status <span class="text-danger">*</span></label>
+                                                <label class="col-lg-4 col-form-label" for="post-status">Status <span class="text-danger">*</span></label>
                                                 <div class="col-lg-8">
-                                                    <select class="js-select2 form-control" id="val-select2" name="status" style="width: 100%;" data-placeholder="Choose one..">
+                                                    <select class="js-select2 form-control" id="post-status" name="post-status" style="width: 100%;">
                                                         <option></option>
                                                         <option value="publish">Publish</option>
                                                         <option value="draft">Draft</option>
@@ -74,9 +81,9 @@
                                                 </div>
                                             </div>
                                             <div class="form-group row">
-                                                <label class="col-lg-4 col-form-label" for="val-select2">Image <span class="text-danger">*</span></label>
+                                                <label class="col-lg-4 col-form-label" for="post-image">Post Image <span class="text-danger">*</span></label>
                                                 <div class="col-lg-8">
-                                                    <input type="file" name="fileName" id="">
+                                                    <input type="file" name="uploadedFile" id="post-image">
                                                 </div>
                                             </div>
                                             <div class="form-group row">
@@ -111,7 +118,66 @@
     <script src="js/lib/preloader/pace.min.js"></script>
     <!-- sidebar -->
     <script src="js/lib/form-validation/jquery.validate.min.js"></script>
-    <script src="js/lib/form-validation/jquery.validate-init.js"></script>
+    <script>
+        var form_validation = function() {
+    var e = function() {
+            jQuery(".form-valide").validate({
+                ignore: [],
+                errorClass: "invalid-feedback animated fadeInDown",
+                errorElement: "div",
+                errorPlacement: function(e, a) {
+                    jQuery(a).parents(".form-group > div").append(e)
+                },
+                highlight: function(e) {
+                    jQuery(e).closest(".form-group").removeClass("is-invalid").addClass("is-invalid")
+                },
+                success: function(e) {
+                    jQuery(e).closest(".form-group").removeClass("is-invalid"), jQuery(e).remove()
+                },
+                rules: {
+                    "post-title": {
+                        required: !0,
+                        minlength: 10
+                    },
+                    "post-content": {
+                        required: !0,
+                        minlength: 50
+                    },
+                    "post-category": {
+                        required: !0
+                    },
+                    "post-status": {
+                        required: !0
+                    },
+                    "post-image": {
+                        required: true,
+                        accept: "image/*"
+                    },
+                },
+                messages: {
+                    "post-title": {
+                        required: "Please enter a post title",
+                        minlength: "Your post title must consist of at least 3 characters"
+                    },
+                    "post-content": "Please write post content",
+    
+                    "post-category": "Please select a category!",
+                    "post-status": "Please select a status!",
+                }
+            })
+        }
+    return {
+        init: function() {
+            e(), a(), jQuery(".js-select2").on("change", function() {
+                jQuery(this).valid()
+            })
+        }
+    }
+}();
+jQuery(function() {
+    form_validation.init()
+});
+    </script>
     <script src="js/lib/bootstrap.min.js"></script>
     <script src="js/scripts.js"></script>
     <!-- bootstrap -->
